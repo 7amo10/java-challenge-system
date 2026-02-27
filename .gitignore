@@ -1,0 +1,32 @@
+# Java / Maven
+target/
+*.class
+*.jar
+!**/src/main/**/*.jar
+.mvn/wrapper/maven-wrapper.jar
+
+# Node
+node_modules/
+.next/
+frontend/.next/
+frontend/node_modules/
+*.env.local
+.env.local
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Temp grader dirs
+grader-*/
+submission-*/
