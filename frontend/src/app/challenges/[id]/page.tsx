@@ -4,6 +4,9 @@ import { difficultyBadge } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import SubmitPanel from "@/components/challenges/SubmitPanel";
 
+// Live data from backend — always render at request time
+export const dynamic = "force-dynamic";
+
 interface Props {
   params: Promise<{ id: string }>;
 }

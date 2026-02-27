@@ -3,6 +3,9 @@ import { TOPICS, type Challenge } from "@/types";
 import { difficultyBadge } from "@/lib/utils";
 import Link from "next/link";
 
+// Live data from backend — always render at request time
+export const dynamic = "force-dynamic";
+
 interface Props {
   searchParams: Promise<{ topic?: string }>;
 }

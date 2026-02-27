@@ -2,6 +2,9 @@ import { fetchCurrentUser } from "@/lib/api";
 import Image from "next/image";
 import Link from "next/link";
 
+// Auth-gated page — always render at request time, never statically prerender
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const user = await fetchCurrentUser();
 

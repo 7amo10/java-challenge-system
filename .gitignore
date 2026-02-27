@@ -9,6 +9,7 @@ target/
 node_modules/
 .next/
 frontend/.next/
+*.tsbuildinfo
 frontend/node_modules/
 *.env.local
 .env.local
