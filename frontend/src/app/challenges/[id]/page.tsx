@@ -3,6 +3,7 @@ import { TOPICS } from "@/types";
 import { difficultyBadge } from "@/lib/utils";
 import { notFound } from "next/navigation";
 import SubmitPanel from "@/components/challenges/SubmitPanel";
+import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
 
 // Live data from backend — always render at request time
 export const dynamic = "force-dynamic";
@@ -64,11 +65,7 @@ export default async function ChallengePage({ params }: Props) {
             <h2 className="font-mono font-semibold text-primary mb-4 flex items-center gap-2">
               <span>✅</span> Requirements
             </h2>
-            <div className="prose prose-invert prose-sm max-w-none">
-              <pre className="text-sm text-muted whitespace-pre-wrap font-mono bg-surface rounded-lg p-4 overflow-auto">
-                {challenge.requirementsMd}
-              </pre>
-            </div>
+            <MarkdownRenderer content={challenge.requirementsMd} />
           </div>
 
           {/* Scoring */}

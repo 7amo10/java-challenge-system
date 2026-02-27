@@ -1,4 +1,4 @@
-import { fetchCurrentUser } from "@/lib/api";
+import { fetchCurrentUser } from "@/lib/server-api";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -16,7 +16,7 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-bold font-mono mb-4">Sign in Required</h1>
           <p className="text-muted mb-8">Log in with GitHub to track your progress and submissions.</p>
           <a
-            href={`${process.env.NEXT_PUBLIC_API_URL || ""}/oauth2/authorization/github`}
+            href={`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080"}/oauth2/authorization/github`}
             className="inline-block px-8 py-3 rounded-lg bg-primary hover:bg-primary-light text-white font-mono font-semibold transition-all glow-primary"
           >
             Login with GitHub

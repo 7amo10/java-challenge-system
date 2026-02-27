@@ -26,7 +26,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 dashboard/
               </a>
               <a
-                href={`${process.env.NEXT_PUBLIC_API_URL || ""}/oauth2/authorization/github`}
+                href={`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080"}/oauth2/authorization/github`}
                 className="px-4 py-1.5 rounded-md bg-primary hover:bg-primary-light text-white font-mono text-sm transition-colors glow-primary"
               >
                 Login with GitHub

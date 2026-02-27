@@ -71,8 +71,8 @@ public class ZipBundleService {
                     <version>3.2.5</version>
                   </plugin>
                   <plugin>
-                    <groupId>org.checkstyle</groupId>
-                    <artifactId>checkstyle-maven-plugin</artifactId>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-checkstyle-plugin</artifactId>
                     <version>3.3.1</version>
                     <configuration>
                       <configLocation>checkstyle.xml</configLocation>

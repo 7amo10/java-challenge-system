@@ -31,7 +31,6 @@ services:
       DB_PASSWORD: postgres
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-placeholder}
       GRADER_URL: http://grader:8081
       FRONTEND_URL: http://localhost:3000
     depends_on:
@@ -60,7 +59,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8080
+      NEXT_PUBLIC_BACKEND_URL: http://localhost:8080
       BACKEND_URL: http://backend:8080
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
