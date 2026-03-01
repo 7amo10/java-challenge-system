@@ -9,6 +9,7 @@ public record ChallengeDto(
     String title,
     String theme,
     String difficulty,
+    String challengeType,
     String story,
     String requirementsMd,
     boolean aiGenerated,
@@ -17,7 +18,7 @@ public record ChallengeDto(
     public static ChallengeDto from(Challenge c) {
         return new ChallengeDto(
             c.getId(), c.getTopicId(), c.getTitle(), c.getTheme(),
-            c.getDifficulty(), c.getStory(), c.getRequirementsMd(),
+            c.getDifficulty(), c.getChallengeType(), c.getStory(), c.getRequirementsMd(),
             c.isAiGenerated(), c.getCreatedAt()
         );
     }

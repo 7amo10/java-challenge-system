@@ -4,6 +4,7 @@ export interface Challenge {
   title: string;
   theme: string;
   difficulty: "medium" | "hard";
+  challengeType: "refactor" | "implement" | "debug";
   story: string;
   requirementsMd: string;
   aiGenerated: boolean;
@@ -29,11 +30,39 @@ export interface User {
   name: string;
 }
 
-export const TOPICS: Record<number, { name: string; icon: string; color: string }> = {
-  1: { name: "Java Basics", icon: "☕", color: "#3b82f6" },
-  2: { name: "OOP & Class Design", icon: "🏗️", color: "#8b5cf6" },
-  3: { name: "Arrays & Lists", icon: "📋", color: "#06b6d4" },
-  4: { name: "Abstraction & Generics", icon: "⚙️", color: "#7c3aed" },
-  5: { name: "Lambdas & Streams", icon: "🌊", color: "#10b981" },
-  6: { name: "Collections Framework", icon: "🗂️", color: "#f59e0b" },
+export type ChallengeType = "refactor" | "implement" | "debug";
+
+export interface Category {
+  name: string;
+  description: string;
+}
+
+export const CATEGORIES: Record<number, Category> = {
+  1: { name: "Core Foundations", description: "Strings, primitives, and fundamental patterns" },
+  2: { name: "Object-Oriented Design", description: "Encapsulation, contracts, and class architecture" },
+  3: { name: "Data Structures", description: "Arrays, lists, and type-safe collections" },
+  4: { name: "Type Safety & Generics", description: "Generic types, bounded wildcards, and type erasure" },
+  5: { name: "Functional Patterns", description: "Lambdas, streams, and declarative pipelines" },
+  6: { name: "Collections Mastery", description: "Maps, sets, iteration patterns, and null safety" },
 };
+
+export function getChallengeType(challenge: Challenge): ChallengeType {
+  return challenge.challengeType || "refactor";
+}
+
+export interface UserStats {
+  totalSubmissions: number;
+  passed: number;
+  failed: number;
+  avgScore: number;
+  bestScore: number;
+  challengesSolved: number;
+}
+
+export interface LeaderboardEntry {
+  username: string;
+  avatarUrl: string;
+  totalScore: number;
+  challengesSolved: number;
+  rank: number;
+}

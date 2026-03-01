@@ -7,4 +7,5 @@ import java.util.UUID;
 public interface SubmissionRepository extends JpaRepository<Submission, UUID> {
     List<Submission> findByUserIdOrderBySubmittedAtDesc(UUID userId);
     List<Submission> findByChallengeIdOrderBySubmittedAtDesc(UUID challengeId);
+    List<Submission> findByStatus(String status);
 }

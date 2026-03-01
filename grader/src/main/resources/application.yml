@@ -1,9 +1,16 @@
 spring:
   application:
     name: java-challenge-grader
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
 
 server:
   port: 8081
+
+grader:
+  work-dir: ${GRADER_WORK_DIR:/tmp}
 
 management:
   endpoints:

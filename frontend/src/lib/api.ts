@@ -42,7 +42,8 @@ export async function submitSolution(challengeId: string, file: File): Promise<S
     body: form,
     credentials: "include",
   });
-  if (!res.ok) throw new Error("Submission failed");
+  if (res.status === 401) throw new Error("Please sign in to submit solutions");
+  if (!res.ok) throw new Error(`Submission failed (${res.status})`);
   return res.json();
 }
 
@@ -61,5 +62,18 @@ export async function fetchCurrentUser(): Promise<User | null> {
     return res.json();
   } catch {
     return null;
+  }
+}
+
+export async function fetchMySubmissions(): Promise<Submission[]> {
+  try {
+    const res = await fetch(`${getApiBase()}/submissions/my`, {
+      credentials: "include",
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
   }
 }

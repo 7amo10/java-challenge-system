@@ -13,8 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.UUID;
 
 @Service
@@ -60,22 +59,30 @@ public class SubmissionService {
     public void gradeAsync(Submission submission, Challenge challenge, Path zipPath) {
         try {
             submission.setStatus("running");
+            submission.setGraderLog("[PHASE] Initializing grading environment...\n");
+            repo.save(submission);
+
+            submission.setGraderLog(submission.getGraderLog() + "[PHASE] Sending submission to sandbox...\n");
             repo.save(submission);
 
             GraderClient.GraderResult result = graderClient.grade(
                     zipPath, challenge.getHiddenTestsJson(), challenge.getCheckstyleRulesJson()
             );
 
+            submission.setGraderLog(submission.getGraderLog() + "[PHASE] Parsing test results...\n");
+            repo.save(submission);
+
             submission.setStatus(result.passed() ? "passed" : "failed");
             submission.setScore(result.score());
             submission.setVisibleTestsJson(result.visibleTestsJson());
             submission.setHiddenTestsJson(result.hiddenTestsJson());
             submission.setCheckstyleViolationsJson(result.checkstyleJson());
-            submission.setGraderLog(result.log());
+            submission.setGraderLog(submission.getGraderLog() + "[PHASE] Grading complete.\n" + result.log());
             submission.setCompletedAt(Instant.now());
         } catch (Exception e) {
             submission.setStatus("error");
-            submission.setGraderLog(e.getMessage());
+            submission.setGraderLog((submission.getGraderLog() != null ? submission.getGraderLog() : "")
+                + "[ERROR] " + e.getMessage() + "\n");
         }
         repo.save(submission);
     }
@@ -88,5 +95,70 @@ public class SubmissionService {
         User user = userService.findByUsername(username);
         return repo.findByUserIdOrderBySubmittedAtDesc(user.getId())
                 .stream().map(SubmissionDto::from).toList();
+    }
+
+    public Map<String, Object> statsForUser(String username) {
+        User user = userService.findByUsername(username);
+        List<Submission> subs = repo.findByUserIdOrderBySubmittedAtDesc(user.getId());
+        long total = subs.size();
+        long passed = subs.stream().filter(s -> "passed".equals(s.getStatus())).count();
+        long failed = subs.stream().filter(s -> "failed".equals(s.getStatus())).count();
+        double avgScore = subs.stream()
+                .filter(s -> s.getScore() != null)
+                .mapToInt(Submission::getScore)
+                .average().orElse(0.0);
+        int bestScore = subs.stream()
+                .filter(s -> s.getScore() != null)
+                .mapToInt(Submission::getScore)
+                .max().orElse(0);
+        long uniqueChallengesSolved = subs.stream()
+                .filter(s -> "passed".equals(s.getStatus()))
+                .map(s -> s.getChallenge().getId())
+                .distinct().count();
+
+        return Map.of(
+            "totalSubmissions", total,
+            "passed", passed,
+            "failed", failed,
+            "avgScore", Math.round(avgScore * 10.0) / 10.0,
+            "bestScore", bestScore,
+            "challengesSolved", uniqueChallengesSolved
+        );
+    }
+
+    public List<Map<String, Object>> leaderboard() {
+        List<Submission> allPassed = repo.findByStatus("passed");
+        // Group by user, sum best scores per challenge
+        Map<UUID, List<Submission>> byUser = allPassed.stream()
+                .collect(java.util.stream.Collectors.groupingBy(s -> s.getUser().getId()));
+
+        List<Map<String, Object>> board = new ArrayList<>();
+        for (var entry : byUser.entrySet()) {
+            User user = entry.getValue().get(0).getUser();
+            // Best score per challenge
+            Map<UUID, Integer> bestPerChallenge = new HashMap<>();
+            for (Submission s : entry.getValue()) {
+                if (s.getScore() != null) {
+                    bestPerChallenge.merge(s.getChallenge().getId(), s.getScore(), Math::max);
+                }
+            }
+            int totalScore = bestPerChallenge.values().stream().mapToInt(i -> i).sum();
+            board.add(Map.of(
+                "username", user.getUsername(),
+                "avatarUrl", user.getAvatarUrl() != null ? user.getAvatarUrl() : "",
+                "totalScore", totalScore,
+                "challengesSolved", bestPerChallenge.size()
+            ));
+        }
+        // Sort by totalScore descending
+        board.sort((a, b) -> ((Integer)b.get("totalScore")).compareTo((Integer)a.get("totalScore")));
+        // Add rank
+        List<Map<String, Object>> ranked = new ArrayList<>();
+        for (int i = 0; i < board.size(); i++) {
+            Map<String, Object> e = new HashMap<>(board.get(i));
+            e.put("rank", i + 1);
+            ranked.add(e);
+        }
+        return ranked;
     }
 }

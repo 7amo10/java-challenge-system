@@ -25,15 +25,19 @@ public class GraderController {
     private final CheckstyleParser checkstyleParser;
     private final ScoreCalculator scoreCalculator;
     private final ObjectMapper objectMapper;
+    private final Path workBaseDir;
 
     public GraderController(DockerSandbox sandbox, SurefireParser surefireParser,
                              CheckstyleParser checkstyleParser, ScoreCalculator scoreCalculator,
-                             ObjectMapper objectMapper) {
+                             ObjectMapper objectMapper,
+                             @org.springframework.beans.factory.annotation.Value("${grader.work-dir:/tmp}") String workDir) {
         this.sandbox = sandbox;
         this.surefireParser = surefireParser;
         this.checkstyleParser = checkstyleParser;
         this.scoreCalculator = scoreCalculator;
         this.objectMapper = objectMapper;
+        this.workBaseDir = Path.of(workDir);
+        try { Files.createDirectories(this.workBaseDir); } catch (Exception ignored) {}
     }
 
     @PostMapping("/grade")
@@ -44,8 +48,12 @@ public class GraderController {
 
         Path workDir = null;
         try {
-            workDir = Files.createTempDirectory("grader-");
+            workDir = Files.createTempDirectory(workBaseDir, "grader-");
             extractZip(zip, workDir);
+
+            // Handle nested directory: if pom.xml is inside a single subdirectory, use that
+            workDir = resolveProjectRoot(workDir);
+
             injectHiddenTests(workDir, hiddenTests);
 
             // Run in Docker
@@ -64,7 +72,8 @@ public class GraderController {
             List<TestResult> hiddenTestResults = allTests.stream()
                     .filter(t -> t.name().contains("Hidden")).toList();
 
-            int score = scoreCalculator.calculate(visibleTests, hiddenTestResults, violations);
+            int score = scoreCalculator.calculate(visibleTests, hiddenTestResults, violations,
+                    hiddenTests != null && !hiddenTests.equals("[]"));
             boolean passed = score >= 60 && execution.exitCode() == 0;
 
             return ResponseEntity.ok(new GraderResult(
@@ -114,6 +123,19 @@ public class GraderController {
             String code = test.get("code").asText();
             Files.writeString(testDir.resolve(className + ".java"), code);
         }
+    }
+
+    /** If pom.xml is inside a single nested directory, return that directory. */
+    private Path resolveProjectRoot(Path extractDir) throws Exception {
+        if (Files.exists(extractDir.resolve("pom.xml"))) return extractDir;
+        try (var entries = Files.list(extractDir)) {
+            List<Path> children = entries.toList();
+            if (children.size() == 1 && Files.isDirectory(children.get(0))
+                    && Files.exists(children.get(0).resolve("pom.xml"))) {
+                return children.get(0);
+            }
+        }
+        return extractDir;
     }
 
     private void deleteDirectory(File dir) {

@@ -53,6 +53,9 @@ public class Challenge {
     @Column(name = "ai_generated")
     private boolean aiGenerated = false;
 
+    @Column(name = "challenge_type", nullable = false)
+    private String challengeType = "refactor";
+
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -70,6 +73,7 @@ public class Challenge {
     public String getHiddenTestsJson() { return hiddenTestsJson; }
     public String getCheckstyleRulesJson() { return checkstyleRulesJson; }
     public boolean isAiGenerated() { return aiGenerated; }
+    public String getChallengeType() { return challengeType; }
     public Instant getCreatedAt() { return createdAt; }
 
     // Setters
@@ -85,4 +89,5 @@ public class Challenge {
     public void setHiddenTestsJson(String json) { this.hiddenTestsJson = json; }
     public void setCheckstyleRulesJson(String json) { this.checkstyleRulesJson = json; }
     public void setAiGenerated(boolean aiGenerated) { this.aiGenerated = aiGenerated; }
+    public void setChallengeType(String challengeType) { this.challengeType = challengeType; }
 }

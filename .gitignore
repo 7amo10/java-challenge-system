@@ -25,9 +25,19 @@ frontend/node_modules/
 .DS_Store
 Thumbs.db
 
+# Environment
+.env
+
 # Docker
 docker-compose.override.yml
 
 # Temp grader dirs
 grader-*/
 submission-*/
+
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz

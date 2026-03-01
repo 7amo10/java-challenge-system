@@ -87,7 +87,7 @@ public class ZipBundleService {
 
     private String buildReadme(Challenge challenge) {
         return "# " + challenge.getTitle() + "\n\n" + challenge.getStory() +
-               "\n\n## Getting Started\n\nSee `Requirements.md` for the full refactoring checklist.\n\n" +
+               "\n\n## Getting Started\n\nSee `Requirements.md` for the full requirements checklist.\n\n" +
                "Run tests: `mvn test`\nRun Checkstyle: `mvn checkstyle:check`\n";
     }
 

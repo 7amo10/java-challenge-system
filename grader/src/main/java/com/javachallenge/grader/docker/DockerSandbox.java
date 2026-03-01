@@ -5,10 +5,11 @@ import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.model.*;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
 import com.github.dockerjava.core.DockerClientImpl;
-import com.github.dockerjava.httpclient5.ApacheDockerHttpClient;
+import com.github.dockerjava.zerodep.ZerodepDockerHttpClient;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -19,16 +20,17 @@ public class DockerSandbox {
 
     private static final String MAVEN_IMAGE = "maven:3.9-eclipse-temurin-21-alpine";
     private static final long MEMORY_LIMIT = 512 * 1024 * 1024L; // 512 MB
-    private static final int TIMEOUT_SECONDS = 120;
+    private static final int TIMEOUT_SECONDS = 300;
 
     public record ExecutionResult(int exitCode, String output) {}
 
     public ExecutionResult runMavenTests(Path workDir) throws Exception {
-        DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder().build();
+        DefaultDockerClientConfig config = DefaultDockerClientConfig.createDefaultConfigBuilder()
+                .withDockerHost("unix:///var/run/docker.sock")
+                .build();
 
-        ApacheDockerHttpClient httpClient = new ApacheDockerHttpClient.Builder()
-                .dockerHost(config.getDockerHost())
-                .sslConfig(config.getSSLConfig())
+        ZerodepDockerHttpClient httpClient = new ZerodepDockerHttpClient.Builder()
+                .dockerHost(URI.create("unix:///var/run/docker.sock"))
                 .maxConnections(10)
                 .connectionTimeout(Duration.ofSeconds(30))
                 .responseTimeout(Duration.ofSeconds(TIMEOUT_SECONDS))
@@ -40,13 +42,16 @@ public class DockerSandbox {
                 docker.pullImageCmd(MAVEN_IMAGE).start().awaitCompletion(60, TimeUnit.SECONDS);
             } catch (Exception ignored) { /* image likely already present */ }
 
-            // Create container with resource limits
+            // Create container with resource limits + shared Maven cache
             HostConfig hostConfig = HostConfig.newHostConfig()
                     .withMemory(MEMORY_LIMIT)
                     .withCpuCount(1L)
-                    .withNetworkMode("none")  // no network access for security
-                    .withBinds(new Bind(workDir.toAbsolutePath().toString(),
-                            new Volume("/workspace"), AccessMode.rw));
+                    .withBinds(
+                            new Bind(workDir.toAbsolutePath().toString(),
+                                    new Volume("/workspace"), AccessMode.rw),
+                            new Bind("javachallenge-m2-cache",
+                                    new Volume("/root/.m2/repository"), AccessMode.rw)
+                    );
 
             CreateContainerResponse container = docker.createContainerCmd(MAVEN_IMAGE)
                     .withCmd("mvn", "-B", "--no-transfer-progress", "test", "checkstyle:check",

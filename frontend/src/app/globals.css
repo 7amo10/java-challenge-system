@@ -11,6 +11,10 @@
   --accent: #f59e0b;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 * {
   box-sizing: border-box;
 }
